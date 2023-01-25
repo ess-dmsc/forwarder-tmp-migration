@@ -32,6 +32,7 @@ class Channel:
     protocol: EpicsProtocol
     output_topic: Optional[str]
     schema: Optional[str]
+    unique_id: Optional[int] = 1
 
 
 @dataclass(frozen=True)

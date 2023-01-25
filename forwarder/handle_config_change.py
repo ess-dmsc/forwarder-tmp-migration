@@ -139,4 +139,4 @@ def handle_configuration_change(
                 elif configuration_change.command_type == CommandType.REMOVE:
                     _unsubscribe_from_pv(channel, update_handlers, logger)
     status_reporter.report_status()
-    configuration_store.save_configuration(update_handlers)
+    # configuration_store.save_configuration(update_handlers)

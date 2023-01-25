@@ -98,4 +98,9 @@ def _parse_streams(
             )
             continue
 
-        yield Channel(stream.channel, epics_protocol, stream.topic, stream.schema)
+        import numpy
+
+        unique_id = numpy.random.randint(low=1, high=1000000)
+        yield Channel(
+            stream.channel, epics_protocol, stream.topic, stream.schema, unique_id
+        )
