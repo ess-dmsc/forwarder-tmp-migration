@@ -41,6 +41,8 @@ class KafkaProducer:
         def ack(err, _):
             if err:
                 self.logger.error(f"Message failed delivery: {err}")
+                if self._update_buffer_err_counter:
+                    self._update_buffer_err_counter.increment()
             else:
                 # increment only for PVs related updates
                 # key is None when we send commands.
