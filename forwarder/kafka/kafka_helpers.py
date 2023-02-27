@@ -47,6 +47,9 @@ def create_producer(
     producer_config = {
         "bootstrap.servers": broker_address,
         "message.max.bytes": "20000000",
+        "message.timeout.ms": "8000",
+        "socket.send.buffer.bytes": "500",
+        "queue.buffering.max.messages": "5",
     }
     if sasl_mechanism:
         producer_config.update(get_sasl_config(sasl_mechanism, username, password))
