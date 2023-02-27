@@ -133,7 +133,7 @@ def create_statistics_reporter(
     statistics_update_interval,
 ):
     metric_hostname = gethostname().replace(".", "_")
-    prefix = f"Forwarder.{metric_hostname}.{service_id}.throughput".replace(
+    prefix = f"tests.Forwarder.{metric_hostname}.{service_id}.throughput".replace(
         " ", ""
     ).lower()
     statistics_reporter = StatisticsReporter(
