@@ -169,6 +169,14 @@ def parse_args():
         type=str,
     )
     parser.add_argument(
+        "--team",
+        required=False,
+        help='workshop team',
+        default="",
+        env_var="TEAM",
+        type=str,
+    )
+    parser.add_argument(
         "--fake-pv-period",
         required=False,
         help="Period for random generated PV updates when channel_provider_type is set to 'fake' (units=milliseconds)",

@@ -160,7 +160,9 @@ if __name__ == "__main__":
         if folder and not osp.exists(folder):
             # Create logger with console, log error and exit
             setup_logger(
-                level=args.verbosity, graylog_logger_address=args.graylog_logger_address
+                level=args.verbosity,
+                graylog_logger_address=args.graylog_logger_address,
+                team=args.team
             )
             get_logger().error(
                 f"Log folder '{folder}' does not exist. Please create it first!"
@@ -171,6 +173,7 @@ if __name__ == "__main__":
         level=args.verbosity,
         log_file_name=args.log_file,
         graylog_logger_address=args.graylog_logger_address,
+        team=args.team
     )
 
     version = get_version()
