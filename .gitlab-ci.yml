@@ -8,6 +8,7 @@ default:
 stages:
   - checks
   - test
+  - compose
 
 checks:
   stage: checks
@@ -29,3 +30,12 @@ test:
       - test-output.xml
     reports:
       junit: test-output.xml
+
+compose:
+  stage: compose
+  image: docker:latest
+  before_script:
+    - pwd
+  script:
+    - docker --version
+    - docker-compose --version
