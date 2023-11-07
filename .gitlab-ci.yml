@@ -39,3 +39,6 @@ compose:
   script:
     - docker --version
     - docker-compose --version
+    - docker-compose up --detach
+    - sleep 60
+    - docker-compose down
