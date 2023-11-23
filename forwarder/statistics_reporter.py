@@ -19,7 +19,7 @@ class StatisticsReporter:
         update_buffer_err_counter: Counter,
         update_delivery_err_counter: Counter,
         logger: Logger,
-        prefix: str = "throughput",
+        prefix: str = "forwarder",
         update_interval_s: int = 10,
     ):
         self._graphyte_server = graphyte_server
