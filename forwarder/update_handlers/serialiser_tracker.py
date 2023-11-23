@@ -97,12 +97,14 @@ class SerialiserTracker:
                 )
 
     def process_pva_message(self, response: Union[Value, Exception]):
-        import random
-
-        random_int = random.randint(1, 2000)
-        random_int = 17
-        if self._latency_counter:
-            self._latency_counter.increment(amount=random_int)
+        if isinstance(response, Value):
+            response_timestamp = (
+                (response.timeStamp.secondsPastEpoch * 1_000_000_000)
+                + response.timeStamp.nanoseconds
+            ) / 1_000_000
+            diff = int((time.time() * 1000) - response_timestamp)
+            if self._latency_counter:
+                self._latency_counter.increment(amount=diff)
         try:
             new_message, new_timestamp = self.serialiser.serialise(response)
         except (RuntimeError, ValueError) as e:
