@@ -21,6 +21,7 @@ from forwarder.kafka.kafka_helpers import (
 from forwarder.kafka.kafka_producer import KafkaProducer
 from forwarder.repeat_timer import RepeatTimer, milliseconds_to_seconds
 from forwarder.update_handlers.schema_serialiser_factory import SerialiserFactory
+from forwarder.utils import Counter
 
 LOWER_AGE_LIMIT = timedelta(days=365.25)
 UPPER_AGE_LIMIT = timedelta(minutes=10)
@@ -35,7 +36,9 @@ class SerialiserTracker:
         pv_name: str,
         output_topic: str,
         periodic_update_ms: Optional[int] = None,
+        latency_counter: Optional[Counter] = None,
     ):
+        from forwarder.statistics_reporter import get_statistics_reporter
         self.serialiser = serialiser
         self._logger = get_logger()
         self._producer = producer
@@ -53,6 +56,8 @@ class SerialiserTracker:
         self._cached_update: Optional[bytes] = None
         self._cached_timestamp: Union[int, float] = 0
         self._cache_lock = Lock()
+        self._latency_counter = latency_counter
+        self._statistics_reporter = get_statistics_reporter()
 
     def _publish_cached_update(self):
         try:
@@ -74,8 +79,15 @@ class SerialiserTracker:
             exception_string = f"Got uncaught exception in SerialiserTracker._publish_cached_update. The message was: {str(e)}"
             self._logger.error(exception_string)
             self._logger.exception(e)
+        if self._statistics_reporter:
+            self._statistics_reporter.send_statistic(f"receive_latency.{self._pv_name}", self._latency_counter.value, tags={"topic": self._output_topic})
 
     def process_pva_message(self, response: Union[Value, Exception]):
+        import random
+        random_int = random.randint(1, 2000)
+        random_int = 17
+        if self._latency_counter:
+            self._latency_counter.increment(amount=random_int)
         new_message, new_timestamp = self.serialiser.serialise(response)
         if new_message is not None:
             self.set_new_message(new_message, new_timestamp)
@@ -160,6 +172,7 @@ def create_serialiser_list(
             pv_name,
             output_topic,
             periodic_update_ms,
+            latency_counter=Counter(),
         )
     )
     if schema not in SCHEMAS_THAT_DO_NOT_REQUIRE_ATTACHED_ALARM:

@@ -1,22 +1,17 @@
-from itertools import count
 from threading import Lock
 
-
 class Counter:
-    """Thread safe Counter class without lock during write"""
+    """Thread safe Counter class"""
 
     def __init__(self):
-        self._num_read = 0
-        self._counter = count()
-        self._read_lock = Lock()
+        self._value = 0
+        self._lock = Lock()
 
-    def increment(self):
-        # next is thread safe
-        next(self._counter)
+    def increment(self, amount=1):
+        with self._lock:
+            self._value += amount
 
     @property
     def value(self):
-        with self._read_lock:
-            value = next(self._counter) - self._num_read
-            self._num_read += 1
-        return value
+        with self._lock:
+            return self._value

@@ -19,6 +19,7 @@ from forwarder.kafka.kafka_helpers import (
 from forwarder.parse_commandline_args import get_version, parse_args
 from forwarder.parse_config_update import parse_config_update
 from forwarder.statistics_reporter import StatisticsReporter
+from forwarder.statistics_reporter import set_statistics_reporter
 from forwarder.status_reporter import StatusReporter
 from forwarder.update_handlers.create_update_handler import UpdateHandler
 from forwarder.utils import Counter
@@ -31,6 +32,8 @@ def create_epics_producer(
     update_message_counter,
     update_buffer_err_counter,
     update_delivery_err_counter,
+    processing_latency_counter,
+    send_latency_counter,
 ):
     (
         broker,
@@ -49,6 +52,8 @@ def create_epics_producer(
         counter=update_message_counter,
         buffer_err_counter=update_buffer_err_counter,
         delivery_err_counter=update_delivery_err_counter,
+        processing_latency_counter=processing_latency_counter,
+        send_latency_counter=send_latency_counter,
     )
     return producer
 
@@ -158,6 +163,9 @@ def create_statistics_reporter(
     update_message_counter,
     update_buffer_err_counter,
     update_delivery_err_counter,
+    receive_latency_counter,
+    processing_latency_counter,
+    send_latency_counter,
     logger,
     statistics_update_interval,
 ):
@@ -171,6 +179,9 @@ def create_statistics_reporter(
         update_message_counter,  # type: ignore
         update_buffer_err_counter,  # type: ignore
         update_delivery_err_counter,  # type: ignore
+        receive_latency_counter,  # type: ignore
+        processing_latency_counter,  # type: ignore
+        send_latency_counter,  # type: ignore
         logger,
         prefix=prefix,
         update_interval_s=statistics_update_interval,
@@ -219,6 +230,9 @@ def main():
     update_message_counter = Counter() if grafana_carbon_address else None
     update_buffer_err_counter = Counter() if grafana_carbon_address else None
     update_delivery_err_counter = Counter() if grafana_carbon_address else None
+    receive_latency_counter = Counter() if grafana_carbon_address else None
+    processing_latency_counter = Counter() if grafana_carbon_address else None
+    send_latency_counter = Counter() if grafana_carbon_address else None
 
     with ExitStack() as exit_stack:
         # Kafka
@@ -229,6 +243,8 @@ def main():
             update_message_counter,
             update_buffer_err_counter,
             update_delivery_err_counter,
+            processing_latency_counter,
+            send_latency_counter
         )
         exit_stack.callback(producer.close)
 
@@ -257,9 +273,13 @@ def main():
                 update_message_counter,
                 update_buffer_err_counter,
                 update_delivery_err_counter,
+                receive_latency_counter,
+                processing_latency_counter,
+                send_latency_counter
                 get_logger(),
                 args.statistics_update_interval,
             )
+            set_statistics_reporter(statistics_reporter)
             exit_stack.callback(statistics_reporter.stop)
             statistics_reporter.start()
 
