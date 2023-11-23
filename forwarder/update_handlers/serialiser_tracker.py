@@ -59,6 +59,7 @@ class SerialiserTracker:
         self._cache_lock = Lock()
         self._statistics_reporter = get_statistics_reporter()
         self._latency_counter = latency_counter
+        self._error_counter = Counter()
 
     def _publish_cached_update(self):
         try:
@@ -83,9 +84,16 @@ class SerialiserTracker:
         if self._statistics_reporter:
             if self._latency_counter:
                 self._statistics_reporter.send_statistic(
-                    f"receive_latency.{self._pv_name}",
+                    f"receive_latency.{self._pv_name.replace('.', '_')}",
                     self._latency_counter.value,
                     tags={"topic": self._output_topic},
+                )
+        if self._statistics_reporter:
+            if self._error_counter:
+                self._statistics_reporter.send_statistic(
+                    f"receive_errors.{self._pv_name.replace('.', '_')}",
+                    self._error_counter.value,
+                    # tags={"topic": self._output_topic},
                 )
 
     def process_pva_message(self, response: Union[Value, Exception]):
@@ -95,7 +103,11 @@ class SerialiserTracker:
         random_int = 17
         if self._latency_counter:
             self._latency_counter.increment(amount=random_int)
-        new_message, new_timestamp = self.serialiser.serialise(response)
+        try:
+            new_message, new_timestamp = self.serialiser.serialise(response)
+        except (RuntimeError, ValueError) as e:
+            self._error_counter.increment()
+            raise e
         if new_message is not None:
             self.set_new_message(new_message, new_timestamp)
 
