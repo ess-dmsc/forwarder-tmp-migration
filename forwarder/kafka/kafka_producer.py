@@ -1,6 +1,5 @@
-from datetime import datetime, timezone
-from threading import Thread
 import time
+from threading import Thread
 from typing import Optional
 
 import confluent_kafka
@@ -44,9 +43,12 @@ class KafkaProducer:
         self._producer.flush(max_wait_to_publish_producer_queue)
 
     def produce(
-        self, topic: str, payload: bytes, timestamp_ms: int, key: Optional[str] = None,
+        self,
+        topic: str,
+        payload: bytes,
+        timestamp_ms: int,
+        key: Optional[str] = None,
     ):
-
         def ack(err, _):
             if err:
                 self.logger.error(f"Message failed delivery: {err}")
@@ -60,11 +62,15 @@ class KafkaProducer:
                     if self._update_msg_counter:
                         self._update_msg_counter.increment()
                     if self._send_latency_counter:
-                        self._send_latency_counter.increment(amount=(ack_timestamp_ms-timestamp_ms))
+                        self._send_latency_counter.increment(
+                            amount=(ack_timestamp_ms - timestamp_ms)
+                        )
 
         produce_timestamp_ms = int(1000 * time.time())
         if self._processing_latency_counter and key is not None:
-            self._processing_latency_counter.increment(amount=(produce_timestamp_ms-timestamp_ms))
+            self._processing_latency_counter.increment(
+                amount=(produce_timestamp_ms - timestamp_ms)
+            )
         try:
             self._producer.produce(
                 topic, payload, key=key, on_delivery=ack, timestamp=timestamp_ms

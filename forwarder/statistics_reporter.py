@@ -11,12 +11,15 @@ from forwarder.utils import Counter
 
 STATISTICS_REPORTER = None
 
+
 def set_statistics_reporter(reporter):
     global STATISTICS_REPORTER
     STATISTICS_REPORTER = reporter
 
+
 def get_statistics_reporter():
     return STATISTICS_REPORTER
+
 
 class StatisticsReporter:
     def __init__(
@@ -52,9 +55,7 @@ class StatisticsReporter:
     def send_statistic(self, metric: Any, value: Any, tags: Any = {}):
         timestamp = time.time()
         try:
-            self._sender.send(
-                metric, value, timestamp
-            )
+            self._sender.send(metric, value, timestamp)
         except Exception as ex:
             self._logger.error(f"Could not send statistic {metric}({tags}): {ex}")
 

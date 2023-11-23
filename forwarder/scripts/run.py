@@ -18,8 +18,7 @@ from forwarder.kafka.kafka_helpers import (
 )
 from forwarder.parse_commandline_args import get_version, parse_args
 from forwarder.parse_config_update import parse_config_update
-from forwarder.statistics_reporter import StatisticsReporter
-from forwarder.statistics_reporter import set_statistics_reporter
+from forwarder.statistics_reporter import StatisticsReporter, set_statistics_reporter
 from forwarder.status_reporter import StatusReporter
 from forwarder.update_handlers.create_update_handler import UpdateHandler
 from forwarder.utils import Counter
@@ -170,9 +169,7 @@ def create_statistics_reporter(
     statistics_update_interval,
 ):
     metric_hostname = gethostname().replace(".", "_")
-    prefix = f"forwarder.{metric_hostname}.{service_id}".replace(
-        " ", ""
-    ).lower()
+    prefix = f"forwarder.{metric_hostname}.{service_id}".replace(" ", "").lower()
     statistics_reporter = StatisticsReporter(
         grafana_carbon_address,
         update_handlers,
@@ -244,7 +241,7 @@ def main():
             update_buffer_err_counter,
             update_delivery_err_counter,
             processing_latency_counter,
-            send_latency_counter
+            send_latency_counter,
         )
         exit_stack.callback(producer.close)
 
@@ -275,7 +272,7 @@ def main():
                 update_delivery_err_counter,
                 receive_latency_counter,
                 processing_latency_counter,
-                send_latency_counter
+                send_latency_counter,
                 get_logger(),
                 args.statistics_update_interval,
             )
