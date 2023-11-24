@@ -84,7 +84,7 @@ class SerialiserTracker:
         if self._statistics_reporter:
             if self._latency_counter:
                 self._statistics_reporter.send_statistic(
-                    f"receive_latency.{self._pv_name.replace('.', '_')}",
+                    f"receive_latency_us.{self._pv_name.replace('.', '_')}",
                     self._latency_counter.value,
                     tags={"topic": self._output_topic},
                 )
@@ -98,13 +98,12 @@ class SerialiserTracker:
 
     def process_pva_message(self, response: Union[Value, Exception]):
         if isinstance(response, Value):
-            response_timestamp = (
-                (response.timeStamp.secondsPastEpoch * 1_000_000_000)
-                + response.timeStamp.nanoseconds
-            ) / 1_000_000
-            diff = int((time.time() * 1000) - response_timestamp)
+            response_timestamp = response.timeStamp.secondsPastEpoch + (
+                response.timeStamp.nanoseconds / 1_000_000_000
+            )
+            diff_us = int((time.time() - response_timestamp) * 1_000_000)
             if self._latency_counter:
-                self._latency_counter.increment(amount=diff)
+                self._latency_counter.increment(amount=diff_us)
         try:
             new_message, new_timestamp = self.serialiser.serialise(response)
         except (RuntimeError, ValueError) as e:
