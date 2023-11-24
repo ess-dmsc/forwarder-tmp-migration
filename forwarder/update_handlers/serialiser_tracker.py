@@ -58,7 +58,6 @@ class SerialiserTracker:
         self._cached_timestamp: Union[int, float] = 0
         self._cache_lock = Lock()
         self._statistics_reporter = get_statistics_reporter()
-        self._latency_counter = latency_counter
         self._error_counter = Counter()
 
     def _publish_cached_update(self):
@@ -82,13 +81,6 @@ class SerialiserTracker:
             self._logger.error(exception_string)
             self._logger.exception(e)
         if self._statistics_reporter:
-            if self._latency_counter:
-                self._statistics_reporter.send_statistic(
-                    f"receive_latency_us.{self._pv_name.replace('.', '_')}",
-                    self._latency_counter.value,
-                    tags={"topic": self._output_topic},
-                )
-        if self._statistics_reporter:
             if self._error_counter:
                 self._statistics_reporter.send_statistic(
                     f"receive_errors.{self._pv_name.replace('.', '_')}",
@@ -102,8 +94,12 @@ class SerialiserTracker:
                 response.timeStamp.nanoseconds / 1_000_000_000
             )
             diff_us = int((time.time() - response_timestamp) * 1_000_000)
-            if self._latency_counter:
-                self._latency_counter.increment(amount=diff_us)
+            if self._statistics_reporter:
+                self._statistics_reporter.send_statistic(
+                    f"receive_latency_us.{self._pv_name.replace('.', '_')}",
+                    diff_us,
+                    tags={"topic": self._output_topic},
+                )
         try:
             new_message, new_timestamp = self.serialiser.serialise(response)
         except (RuntimeError, ValueError) as e:
